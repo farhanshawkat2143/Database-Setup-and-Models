@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Stock Tracking System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .loading { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API Test Page</h1>
+    <p>This page tests the Stock Tracking System APIs to ensure they're working correctly.</p>
+    
+    <div>
+        <button onclick="testHealth()">Test Health Check</button>
+        <button onclick="testProducts()">Test Products API</button>
+        <button onclick="testStockCurrent()">Test Current Stock</button>
+        <button onclick="testAll()">Test All APIs</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        const CV_API_BASE_URL = 'http://localhost:3000/api/cv';
+        
+        function addResult(message, type = 'success') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = message;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        async function testAPI(url, name) {
+            try {
+                addResult(`🔄 Testing ${name}...`, 'loading');
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ ${name}: SUCCESS<br><pre>${JSON.stringify(data, null, 2)}</pre>`);
+                } else {
+                    addResult(`❌ ${name}: FAILED (${response.status})<br><pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ ${name}: ERROR<br>${error.message}`, 'error');
+            }
+        }
+        
+        async function testHealth() {
+            await testAPI(`${API_BASE_URL}/health`, 'Health Check');
+        }
+        
+        async function testProducts() {
+            await testAPI(`${CV_API_BASE_URL}/products`, 'Products API');
+        }
+        
+        async function testStockCurrent() {
+            await testAPI(`${CV_API_BASE_URL}/stock/current`, 'Current Stock API');
+        }
+        
+        async function testAll() {
+            document.getElementById('results').innerHTML = '';
+            addResult('🚀 Starting comprehensive API test...', 'loading');
+            
+            await testHealth();
+            await testProducts();
+            await testStockCurrent();
+            
+            // Test time-series API
+            await testAPI(`${API_BASE_URL}/api/timeseries/trend?productId=68cea04686759a6ea6f6f237&method=linear`, 'Trend Analysis API');
+            
+            addResult('🎉 All tests completed!', 'success');
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            addResult('📋 API Test Page Loaded. Click buttons above to test APIs.', 'loading');
+        });
+    </script>
+</body>
+</html>

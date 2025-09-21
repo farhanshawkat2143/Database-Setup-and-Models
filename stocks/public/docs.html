@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Tracking API Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <h1 class="text-3xl font-bold text-gray-900">📚 API Documentation</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-colors">
+                        🏠 Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- API Overview -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">API Overview</h2>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p class="text-blue-800"><strong>Base URL:</strong> <code class="bg-blue-100 px-2 py-1 rounded">http://localhost:3000/api/stocks</code></p>
+                <p class="text-blue-800 mt-2"><strong>Content-Type:</strong> <code class="bg-blue-100 px-2 py-1 rounded">application/json</code></p>
+            </div>
+        </div>
+
+        <!-- Stock Management Endpoints -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Stock Management</h2>
+            
+            <!-- POST /update -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-semibold mr-3">POST</span>
+                    <code class="text-lg font-mono">/update</code>
+                </div>
+                <p class="text-gray-600 mb-3">Record a new stock change</p>
+                
+                <div class="bg-gray-50 rounded p-3 mb-3">
+                    <h4 class="font-semibold mb-2">Request Body:</h4>
+                    <pre class="text-sm"><code>{
+  "productId": "PROD001",
+  "change": 50,
+  "reason": "restock"
+}</code></pre>
+                </div>
+                
+                <div class="bg-gray-50 rounded p-3 mb-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "data": {
+    "productId": "PROD001",
+    "change": 50,
+    "stockLevel": 100,
+    "reason": "restock",
+    "timestamp": "2025-01-15T10:30:00.000Z"
+  },
+  "message": "Stock change recorded successfully"
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- GET /current -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold mr-3">GET</span>
+                    <code class="text-lg font-mono">/current?productId=PROD001</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get current stock level for a product</p>
+                
+                <div class="bg-gray-50 rounded p-3 mb-3">
+                    <h4 class="font-semibold mb-2">Query Parameters:</h4>
+                    <ul class="text-sm list-disc list-inside">
+                        <li><code>productId</code> (required) - Product identifier</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 rounded p-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "data": {
+    "productId": "PROD001",
+    "currentStockLevel": 100,
+    "lastUpdated": "2025-01-15T10:30:00.000Z"
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Data Endpoints -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Historical Data</h2>
+            
+            <!-- GET /history -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold mr-3">GET</span>
+                    <code class="text-lg font-mono">/history</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get historical data with aggregation</p>
+                
+                <div class="bg-gray-50 rounded p-3 mb-3">
+                    <h4 class="font-semibold mb-2">Query Parameters:</h4>
+                    <ul class="text-sm list-disc list-inside">
+                        <li><code>productId</code> (required) - Product identifier</li>
+                        <li><code>from</code> (optional) - Start date (ISO8601)</li>
+                        <li><code>to</code> (optional) - End date (ISO8601)</li>
+                        <li><code>period</code> (optional) - Aggregation period: daily, weekly, monthly, quarterly</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 rounded p-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "data": [
+    {
+      "_id": { "year": 2025, "month": 1, "day": 15 },
+      "date": "2025-01-15T00:00:00.000Z",
+      "avgStockLevel": 95.5,
+      "minStockLevel": 80,
+      "maxStockLevel": 110,
+      "totalChange": 30,
+      "recordCount": 5
+    }
+  ],
+  "productId": "PROD001",
+  "period": "daily"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Endpoints -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Analysis</h2>
+            
+            <!-- GET /trend -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold mr-3">GET</span>
+                    <code class="text-lg font-mono">/trend</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get trend analysis with moving average</p>
+                
+                <div class="bg-gray-50 rounded p-3 mb-3">
+                    <h4 class="font-semibold mb-2">Query Parameters:</h4>
+                    <ul class="text-sm list-disc list-inside">
+                        <li><code>productId</code> (required) - Product identifier</li>
+                        <li><code>period</code> (optional) - Analysis period: daily, weekly, monthly</li>
+                        <li><code>window</code> (optional) - Moving average window (default: 7)</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 rounded p-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "data": [...],
+  "movingAverage": [null, null, 95.2, 96.1, ...],
+  "trend": "increasing",
+  "window": 7
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- GET /restock-pattern -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold mr-3">GET</span>
+                    <code class="text-lg font-mono">/restock-pattern</code>
+                </div>
+                <p class="text-gray-600 mb-3">Analyze restocking patterns and predict next restock</p>
+                
+                <div class="bg-gray-50 rounded p-3 mb-3">
+                    <h4 class="font-semibold mb-2">Query Parameters:</h4>
+                    <ul class="text-sm list-disc list-inside">
+                        <li><code>productId</code> (required) - Product identifier</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 rounded p-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "data": {
+    "pattern": "regular",
+    "averageInterval": 7.2,
+    "nextPredictedRestock": "2025-01-22T00:00:00.000Z",
+    "confidence": 0.85,
+    "intervals": [7, 7, 8, 7],
+    "totalRestocks": 4
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management Endpoints -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Data Management</h2>
+            
+            <!-- POST /seed -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-semibold mr-3">POST</span>
+                    <code class="text-lg font-mono">/seed</code>
+                </div>
+                <p class="text-gray-600 mb-3">Seed database with sample data</p>
+                
+                <div class="bg-gray-50 rounded p-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "message": "Sample data seeded successfully"
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- DELETE /clear -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold mr-3">DELETE</span>
+                    <code class="text-lg font-mono">/clear</code>
+                </div>
+                <p class="text-gray-600 mb-3">Clear all data from database</p>
+                
+                <div class="bg-gray-50 rounded p-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "message": "Cleared 150 records",
+  "deletedCount": 150
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- GET /stats -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center mb-2">
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold mr-3">GET</span>
+                    <code class="text-lg font-mono">/stats</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get database statistics</p>
+                
+                <div class="bg-gray-50 rounded p-3">
+                    <h4 class="font-semibold mb-2">Response:</h4>
+                    <pre class="text-sm"><code>{
+  "success": true,
+  "data": {
+    "totalRecords": 150,
+    "uniqueProducts": 3,
+    "products": ["PROD001", "PROD002", "PROD003"],
+    "reasonBreakdown": [
+      { "_id": "sale", "count": 100 },
+      { "_id": "restock", "count": 40 },
+      { "_id": "adjustment", "count": 10 }
+    ]
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Handling -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Error Handling</h2>
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 class="font-semibold text-red-800 mb-2">Error Response Format:</h3>
+                <pre class="text-sm text-red-700"><code>{
+  "success": false,
+  "error": "Error message description"
+}</code></pre>
+            </div>
+            
+            <div class="mt-4">
+                <h3 class="font-semibold text-gray-900 mb-2">Common Error Codes:</h3>
+                <ul class="text-sm list-disc list-inside text-gray-600">
+                    <li><strong>400</strong> - Bad Request (validation errors)</li>
+                    <li><strong>404</strong> - Not Found (route not found)</li>
+                    <li><strong>500</strong> - Internal Server Error</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Examples -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Usage Examples</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">cURL Examples:</h3>
+                    <div class="bg-gray-50 rounded p-3 text-sm">
+                        <p class="font-semibold mb-1">Record Stock Change:</p>
+                        <pre><code>curl -X POST http://localhost:3000/api/stocks/update \
+  -H "Content-Type: application/json" \
+  -d '{"productId":"PROD001","change":50,"reason":"restock"}'</code></pre>
+                        
+                        <p class="font-semibold mb-1 mt-3">Get Historical Data:</p>
+                        <pre><code>curl "http://localhost:3000/api/stocks/history?productId=PROD001&period=daily"</code></pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">JavaScript Examples:</h3>
+                    <div class="bg-gray-50 rounded p-3 text-sm">
+                        <pre><code>// Record stock change
+const response = await fetch('/api/stocks/update', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    productId: 'PROD001',
+    change: 50,
+    reason: 'restock'
+  })
+});
+
+// Get trend analysis
+const trend = await fetch('/api/stocks/trend?productId=PROD001&window=7');</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

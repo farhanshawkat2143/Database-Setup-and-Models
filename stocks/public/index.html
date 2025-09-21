@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Tracking System - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <h1 class="text-3xl font-bold text-gray-900">📊 Stock Tracking System</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-500">
+                        <span id="current-time"></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div id="realtime-indicator" class="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                        <span id="realtime-status" class="text-xs text-gray-500">Live</span>
+                    </div>
+                    <button onclick="toggleRealTime()" id="realtime-toggle" class="bg-success text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        📡 Real-time ON
+                    </button>
+                    <a href="docs.html" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        📚 API Docs
+                    </a>
+                    <button onclick="refreshAllData()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-colors">
+                        🔄 Refresh All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Current Stock Levels -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Current Stock Levels</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="current-stock-cards">
+                <!-- Stock cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Stock Update Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Record Stock Change</h2>
+            <form id="stock-update-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="productId" class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                    <select id="productId" name="productId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="change" class="block text-sm font-medium text-gray-700 mb-2">Change Amount</label>
+                    <input type="number" id="change" name="change" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g., 50 or -10" required>
+                </div>
+                <div>
+                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                    <select id="reason" name="reason" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Select Reason</option>
+                        <option value="restock">Restock</option>
+                        <option value="sale">Sale</option>
+                        <option value="adjustment">Adjustment</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-success text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
+                        📝 Record Change
+                    </button>
+                </div>
+            </form>
+            <div id="update-result" class="mt-4"></div>
+        </div>
+
+        <!-- Historical Data Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Historical Data Analysis</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label for="history-productId" class="block text-sm font-medium text-gray-700 mb-2">Product ID</label>
+                    <select id="history-productId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="PROD001">PROD001</option>
+                        <option value="PROD002">PROD002</option>
+                        <option value="PROD003">PROD003</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="from-date" class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                    <input type="date" id="from-date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label for="to-date" class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                    <input type="date" id="to-date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Period</label>
+                    <select id="period" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="loadHistoricalData()" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-secondary transition-colors mb-4">
+                📈 Load Historical Data
+            </button>
+            <div id="historical-chart-container" class="mt-4">
+                <canvas id="historicalChart" width="400" height="200"></canvas>
+            </div>
+            <div id="historical-data-table" class="mt-6"></div>
+        </div>
+
+        <!-- Trend Analysis Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Trend Analysis</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label for="trend-productId" class="block text-sm font-medium text-gray-700 mb-2">Product ID</label>
+                    <select id="trend-productId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="PROD001">PROD001</option>
+                        <option value="PROD002">PROD002</option>
+                        <option value="PROD003">PROD003</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="trend-period" class="block text-sm font-medium text-gray-700 mb-2">Period</label>
+                    <select id="trend-period" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="trend-window" class="block text-sm font-medium text-gray-700 mb-2">Moving Average Window</label>
+                    <input type="number" id="trend-window" value="7" min="1" max="30" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            <button onclick="loadTrendAnalysis()" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-secondary transition-colors mb-4">
+                📊 Analyze Trends
+            </button>
+            <div id="trend-analysis-results" class="mt-4"></div>
+            <div id="trend-chart-container" class="mt-4">
+                <canvas id="trendChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Restock Pattern Analysis -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Restock Pattern Analysis</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="pattern-productId" class="block text-sm font-medium text-gray-700 mb-2">Product ID</label>
+                    <select id="pattern-productId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="PROD001">PROD001</option>
+                        <option value="PROD002">PROD002</option>
+                        <option value="PROD003">PROD003</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="loadRestockPattern()" class="w-full bg-warning text-white px-6 py-2 rounded-md hover:bg-yellow-600 transition-colors">
+                        🔍 Analyze Pattern
+                    </button>
+                </div>
+            </div>
+            <div id="restock-pattern-results" class="mt-4"></div>
+        </div>
+
+        <!-- API Testing Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">API Testing Console</h2>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-semibold text-gray-700 mb-2">Quick Actions</h3>
+                        <div class="space-y-2">
+                            <button onclick="seedSampleData()" class="w-full bg-secondary text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">
+                                🌱 Seed Sample Data
+                            </button>
+                            <button onclick="testAllAPIs()" class="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                                🧪 Test All APIs
+                            </button>
+                            <button onclick="clearAllData()" class="w-full bg-danger text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
+                                🗑️ Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-700 mb-2">API Status</h3>
+                        <div id="api-status" class="text-sm">
+                            <div class="flex items-center mb-2">
+                                <span class="w-3 h-3 bg-gray-400 rounded-full mr-2" id="status-indicator"></span>
+                                <span id="status-text">Checking connection...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span class="text-lg font-medium">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // Global variables
+        let historicalChart = null;
+        let trendChart = null;
+        const API_BASE_URL = 'http://localhost:3000/api/stocks';
+        const CV_API_BASE_URL = 'http://localhost:3000/api/cv';
+        let autoRefreshInterval = null;
+        let realTimeEnabled = true;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            checkAPIStatus();
+            loadProducts(); // Load products first
+            loadCurrentStockLevels();
+            setDefaultDates();
+            startAutoRefresh();
+            setupRealTimeUpdates();
+        });
+
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+
+        // Set default dates for historical data
+        function setDefaultDates() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('from-date').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('to-date').value = today.toISOString().split('T')[0];
+        }
+
+        // Check API status
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch('http://localhost:3000/health');
+                if (response.ok) {
+                    document.getElementById('status-indicator').className = 'w-3 h-3 bg-success rounded-full mr-2';
+                    document.getElementById('status-text').textContent = 'API Connected';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                document.getElementById('status-indicator').className = 'w-3 h-3 bg-danger rounded-full mr-2';
+                document.getElementById('status-text').textContent = 'API Disconnected';
+            }
+        }
+
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-primary';
+            toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+            toast.textContent = message;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Load products for dropdowns
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${CV_API_BASE_URL}/products`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const productSelects = ['productId', 'history-productId', 'trend-productId', 'pattern-productId'];
+                    
+                    productSelects.forEach(selectId => {
+                        const select = document.getElementById(selectId);
+                        if (select) {
+                            // Clear existing options except the first one
+                            select.innerHTML = '<option value="">Select Product</option>';
+                            
+                            data.data.forEach(product => {
+                                const option = document.createElement('option');
+                                option.value = product.productId;
+                                option.textContent = `${product.name} (${product.category})`;
+                                select.appendChild(option);
+                            });
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        // Load current stock levels
+        async function loadCurrentStockLevels() {
+            const container = document.getElementById('current-stock-cards');
+            container.innerHTML = '';
+
+            try {
+                const response = await fetch(`${CV_API_BASE_URL}/stock/current`);
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    data.data.forEach(stock => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white rounded-lg shadow-md p-6 border-l-4 border-primary';
+                        
+                        // Determine stock level color
+                        let stockColor = 'text-green-600';
+                        let stockIcon = '📦';
+                        if (stock.stockPercentage < 20) {
+                            stockColor = 'text-red-600';
+                            stockIcon = '⚠️';
+                        } else if (stock.stockPercentage < 50) {
+                            stockColor = 'text-yellow-600';
+                            stockIcon = '📦';
+                        }
+                        
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">${stock.productName}</h3>
+                                    <p class="text-sm text-gray-600">${stock.shelfName}</p>
+                                    <p class="text-3xl font-bold ${stockColor} mt-2">${stock.stockPercentage}%</p>
+                                    <p class="text-sm text-gray-500 mt-1">${stock.stockCount || 0} units</p>
+                                    <p class="text-xs text-gray-400 mt-1">Confidence: ${Math.round(stock.confidence * 100)}%</p>
+                                </div>
+                                <div class="text-4xl">${stockIcon}</div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    // Show message if no data
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <div class="text-gray-500 text-lg">No stock data available</div>
+                            <div class="text-gray-400 text-sm mt-2">Click "Seed Sample Data" to populate the database</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading stock levels:', error);
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-red-500 text-lg">Error loading stock data</div>
+                        <div class="text-gray-400 text-sm mt-2">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Handle stock update form submission
+        document.getElementById('stock-update-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                productId: formData.get('productId'),
+                change: parseInt(formData.get('change')),
+                reason: formData.get('reason')
+            };
+
+            showLoading();
+            
+            try {
+                // Use the time-series API for compatibility
+                const response = await fetch('http://localhost:3000/api/timeseries/record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ...data,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Stock change recorded successfully!', 'success');
+                    document.getElementById('update-result').innerHTML = `
+                        <div class="bg-success text-white p-4 rounded-lg">
+                            <h4 class="font-semibold">✅ Stock Change Recorded</h4>
+                            <p>New stock level: ${result.data.stockLevel}</p>
+                            <p>Velocity: ${result.data.velocity}</p>
+                            <p>Acceleration: ${result.data.acceleration}</p>
+                        </div>
+                    `;
+                    e.target.reset();
+                    loadCurrentStockLevels();
+                } else {
+                    throw new Error(result.error || 'Failed to record stock change');
+                }
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+                document.getElementById('update-result').innerHTML = `
+                    <div class="bg-danger text-white p-4 rounded-lg">
+                        <h4 class="font-semibold">❌ Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Load historical data
+        async function loadHistoricalData() {
+            const productId = document.getElementById('history-productId').value;
+            const fromDate = document.getElementById('from-date').value;
+            const toDate = document.getElementById('to-date').value;
+            const period = document.getElementById('period').value;
+
+            // Validate inputs
+            if (!productId) {
+                showToast('Please select a product first', 'error');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Use the computer vision API for historical data
+                let url = `${CV_API_BASE_URL}/stock/history?productId=${productId}&shelfId=all&granularity=${period}`;
+                if (fromDate) url += `&startTime=${fromDate}`;
+                if (toDate) url += `&endTime=${toDate}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayHistoricalData(data.data);
+                    showToast('Historical data loaded successfully!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to load historical data');
+                }
+            } catch (error) {
+                console.error('Historical data error:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display historical data
+        function displayHistoricalData(data) {
+            // Create chart
+            const ctx = document.getElementById('historicalChart').getContext('2d');
+            
+            if (historicalChart) {
+                historicalChart.destroy();
+            }
+
+            const labels = data.map(item => {
+                const date = new Date(item.date);
+                return date.toLocaleDateString();
+            });
+
+            const stockLevels = data.map(item => item.avgStockLevel);
+            const changes = data.map(item => item.totalChange);
+
+            historicalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Stock Level',
+                        data: stockLevels,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.1
+                    }, {
+                        label: 'Total Change',
+                        data: changes,
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+
+            // Create data table
+            const tableContainer = document.getElementById('historical-data-table');
+            tableContainer.innerHTML = `
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Data Table</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Stock</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Min Stock</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Stock</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Change</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Records</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${data.map(item => `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(item.date).toLocaleDateString()}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.avgStockLevel.toFixed(2)}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.minStockLevel}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.maxStockLevel}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.totalChange}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.recordCount}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Load trend analysis
+        async function loadTrendAnalysis() {
+            const productId = document.getElementById('trend-productId').value;
+            const period = document.getElementById('trend-period').value;
+            const window = document.getElementById('trend-window').value;
+
+            // Validate inputs
+            if (!productId) {
+                showToast('Please select a product first', 'error');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Use the time-series API for trend analysis
+                const response = await fetch(`http://localhost:3000/api/timeseries/trend?productId=${productId}&method=linear&window=${window}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayTrendAnalysis(data);
+                    showToast('Trend analysis completed!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to load trend analysis');
+                }
+            } catch (error) {
+                console.error('Trend analysis error:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display trend analysis
+        function displayTrendAnalysis(response) {
+            const resultsContainer = document.getElementById('trend-analysis-results');
+            const data = response.data || response; // Handle both response structures
+            
+            // Safely get trend value with fallback
+            const trend = data.trend || 'unknown';
+            const trendColor = trend === 'increasing' ? 'text-success' : 
+                             trend === 'decreasing' ? 'text-danger' : 
+                             trend === 'stable' ? 'text-warning' : 'text-gray-500';
+            
+            resultsContainer.innerHTML = `
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Trend Analysis Results</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Trend Direction</p>
+                            <p class="text-2xl font-bold ${trendColor}">${trend.toUpperCase()}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Method</p>
+                            <p class="text-2xl font-bold text-primary">${data.method || 'N/A'}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Confidence</p>
+                            <p class="text-2xl font-bold text-primary">${data.confidence ? (data.confidence * 100).toFixed(1) + '%' : 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Slope</p>
+                            <p class="text-lg font-semibold text-gray-900">${data.slope ? data.slope.toFixed(4) : 'N/A'}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">R² Score</p>
+                            <p class="text-lg font-semibold text-gray-900">${data.r2 ? data.r2.toFixed(4) : 'N/A'}</p>
+                        </div>
+                    </div>
+                    ${trend === 'insufficient_data' ? 
+                        '<div class="mt-4 p-3 bg-yellow-100 border border-yellow-400 rounded-md"><p class="text-yellow-800 text-sm">⚠️ Insufficient data for trend analysis. Please ensure there are enough stock level records for the selected product.</p></div>' : 
+                        ''
+                    }
+                </div>
+            `;
+
+            // Create trend chart (only if we have sufficient data)
+            if (trend === 'insufficient_data') {
+                // Hide chart if insufficient data
+                const chartContainer = document.getElementById('trendChart').parentElement;
+                chartContainer.style.display = 'none';
+                return;
+            }
+            
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (trendChart) {
+                trendChart.destroy();
+            }
+
+            // Create a simple informational chart
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Trend Analysis'],
+                    datasets: [{
+                        label: 'Analysis Complete',
+                        data: [1],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        pointRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Trend: ${trend.toUpperCase()} (${data.method})`
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 2
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load restock pattern analysis
+        async function loadRestockPattern() {
+            const productId = document.getElementById('pattern-productId').value;
+
+            // Validate inputs
+            if (!productId) {
+                showToast('Please select a product first', 'error');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Use the time-series API for cycle detection
+                const response = await fetch(`http://localhost:3000/api/timeseries/cycles?productId=${productId}&maxPeriod=30`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayRestockPattern(data);
+                    showToast('Restock pattern analysis completed!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to load restock pattern');
+                }
+            } catch (error) {
+                console.error('Restock pattern error:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display restock pattern analysis
+        function displayRestockPattern(response) {
+            const container = document.getElementById('restock-pattern-results');
+            const data = response.data || response; // Handle both response structures
+            
+            // Safely get values with fallbacks
+            const cycles = data.cycles || [];
+            const confidence = data.confidence || 0;
+            const patternType = cycles.length > 0 ? 'regular' : 'insufficient_data';
+            
+            const patternColor = patternType === 'regular' ? 'text-success' : 
+                               patternType === 'highly_regular' ? 'text-success' :
+                               patternType === 'irregular' ? 'text-danger' : 'text-gray-500';
+
+            container.innerHTML = `
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Restock Pattern Analysis</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Pattern Type</p>
+                            <p class="text-xl font-bold ${patternColor}">${patternType.replace('_', ' ').toUpperCase()}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Detected Cycles</p>
+                            <p class="text-xl font-bold text-primary">${cycles.length}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Confidence</p>
+                            <p class="text-xl font-bold text-primary">${(confidence * 100).toFixed(1)}%</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Analysis Method</p>
+                            <p class="text-xl font-bold text-primary">Autocorrelation</p>
+                        </div>
+                    </div>
+                    
+                    ${patternType === 'insufficient_data' ? 
+                        '<div class="mt-4 p-3 bg-yellow-100 border border-yellow-400 rounded-md"><p class="text-yellow-800 text-sm">⚠️ Insufficient data for cycle detection. More stock level records are needed to identify restocking patterns.</p></div>' : 
+                        cycles.length > 0 ? 
+                            `<div class="mt-4">
+                                <h4 class="text-md font-semibold text-gray-900 mb-2">Detected Cycles:</h4>
+                                <div class="space-y-2">
+                                    ${cycles.map(cycle => `
+                                        <div class="bg-white p-3 rounded border">
+                                            <p class="text-sm"><strong>Period:</strong> ${cycle.period} days</p>
+                                            <p class="text-sm"><strong>Strength:</strong> ${cycle.strength.toFixed(3)}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>` :
+                            '<div class="mt-4 p-3 bg-blue-100 border border-blue-400 rounded-md"><p class="text-blue-800 text-sm">ℹ️ No significant cycles detected in the current data.</p></div>'
+                    }
+                </div>
+            `;
+        }
+
+        // Start auto-refresh functionality
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            // Auto-refresh every 30 seconds
+            autoRefreshInterval = setInterval(async () => {
+                if (realTimeEnabled) {
+                    await loadCurrentStockLevels();
+                    await checkAPIStatus();
+                }
+            }, 30000); // 30 seconds
+            
+            console.log('🔄 Auto-refresh started (every 30 seconds)');
+        }
+
+        // Stop auto-refresh
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                console.log('⏹️ Auto-refresh stopped');
+            }
+        }
+
+        // Toggle real-time updates
+        function toggleRealTime() {
+            realTimeEnabled = !realTimeEnabled;
+            const button = document.getElementById('realtime-toggle');
+            const indicator = document.getElementById('realtime-indicator');
+            const status = document.getElementById('realtime-status');
+            
+            if (realTimeEnabled) {
+                startAutoRefresh();
+                button.textContent = '📡 Real-time ON';
+                button.className = 'bg-success text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors';
+                indicator.className = 'w-2 h-2 bg-success rounded-full animate-pulse';
+                status.textContent = 'Live';
+                showToast('Real-time updates enabled', 'success');
+            } else {
+                stopAutoRefresh();
+                button.textContent = '📡 Real-time OFF';
+                button.className = 'bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors';
+                indicator.className = 'w-2 h-2 bg-gray-400 rounded-full';
+                status.textContent = 'Offline';
+                showToast('Real-time updates disabled', 'info');
+            }
+        }
+
+        // Setup real-time updates using Server-Sent Events (if available)
+        function setupRealTimeUpdates() {
+            // Check if browser supports Server-Sent Events
+            if (typeof(EventSource) !== "undefined") {
+                try {
+                    const eventSource = new EventSource('http://localhost:3000/api/stocks/events');
+                    
+                    eventSource.onmessage = function(event) {
+                        if (realTimeEnabled) {
+                            const data = JSON.parse(event.data);
+                            console.log('📡 Real-time update received:', data);
+                            
+                            // Update stock levels if it's a stock change event
+                            if (data.type === 'stock_change') {
+                                loadCurrentStockLevels();
+                                showToast(`Stock updated: ${data.productId} (${data.change > 0 ? '+' : ''}${data.change})`, 'info');
+                            } else if (data.type === 'connected') {
+                                console.log('📡 SSE connected successfully');
+                            } else if (data.type === 'heartbeat') {
+                                // Update last seen timestamp
+                                const status = document.getElementById('realtime-status');
+                                if (status) {
+                                    status.textContent = 'Live';
+                                }
+                            }
+                        }
+                    };
+                    
+                    eventSource.onerror = function(event) {
+                        console.log('📡 SSE connection error, falling back to polling');
+                        const indicator = document.getElementById('realtime-indicator');
+                        const status = document.getElementById('realtime-status');
+                        if (indicator) indicator.className = 'w-2 h-2 bg-warning rounded-full';
+                        if (status) status.textContent = 'Reconnecting...';
+                        eventSource.close();
+                    };
+                    
+                    console.log('📡 Server-Sent Events connected');
+                } catch (error) {
+                    console.log('📡 SSE not available, using polling only');
+                }
+            } else {
+                console.log('📡 Browser does not support Server-Sent Events, using polling only');
+            }
+        }
+
+        // Refresh all data
+        async function refreshAllData() {
+            showLoading();
+            await loadCurrentStockLevels();
+            await checkAPIStatus();
+            hideLoading();
+            showToast('All data refreshed!', 'success');
+        }
+
+        // Seed sample data
+        async function seedSampleData() {
+            showLoading();
+            try {
+                // Use the computer vision seeding endpoint
+                const response = await fetch(`${CV_API_BASE_URL}/seed`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Computer Vision data seeded successfully!', 'success');
+                    loadProducts(); // Reload products
+                    loadCurrentStockLevels();
+                } else {
+                    throw new Error(result.error || 'Failed to seed data');
+                }
+            } catch (error) {
+                showToast(`Error seeding data: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Test all APIs
+        async function testAllAPIs() {
+            showLoading();
+            try {
+                const tests = [
+                    { name: 'Health Check', url: 'http://localhost:3000/health' },
+                    { name: 'Current Stock', url: `${API_BASE_URL}/current?productId=PROD001` },
+                    { name: 'Historical Data', url: `${API_BASE_URL}/history?productId=PROD001&period=daily` },
+                    { name: 'Trend Analysis', url: `${API_BASE_URL}/trend?productId=PROD001&period=daily&window=7` },
+                    { name: 'Restock Pattern', url: `${API_BASE_URL}/restock-pattern?productId=PROD001` },
+                    { name: 'Database Stats', url: `${API_BASE_URL}/stats` }
+                ];
+
+                const results = [];
+                for (const test of tests) {
+                    try {
+                        const response = await fetch(test.url);
+                        results.push({ name: test.name, status: response.ok ? 'PASS' : 'FAIL' });
+                    } catch (error) {
+                        results.push({ name: test.name, status: 'FAIL' });
+                    }
+                }
+
+                const passedTests = results.filter(r => r.status === 'PASS').length;
+                showToast(`API Tests: ${passedTests}/${results.length} passed`, passedTests === results.length ? 'success' : 'error');
+                
+            } catch (error) {
+                showToast(`Error testing APIs: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Clear all data
+        async function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                showLoading();
+                try {
+                    const response = await fetch(`${API_BASE_URL}/clear`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showToast(`Cleared ${result.deletedCount} records!`, 'success');
+                        loadCurrentStockLevels();
+                    } else {
+                        throw new Error(result.error || 'Failed to clear data');
+                    }
+                } catch (error) {
+                    showToast(`Error clearing data: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
